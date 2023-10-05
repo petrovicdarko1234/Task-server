@@ -12,76 +12,89 @@ type Task = {
     Completed: boolean
 }
 
-let path: string = "tasks.json"
-readFromPath(path)
-
-let tasks: Task[] = []
-let n = 0
-
 //GET
-app.get("/api/task", (req, resp) => {
+app.get("/api/task/:userID", async function draw(req, resp) {
+    let Path: string = ".json"
+    let tasks: Task[] = await readFromPath(req.params.userID + Path)
     resp.send(tasks)
 })
 
 //Create
 app.use(express.json());
 
-app.post("/api/task", (req, resp) => {
+app.post("/api/task/:userID", async function (req, resp) {
 
+    let Path: string = ".json"
+    let tasks: Task[] = await readFromPath(req.params.userID + Path)
+    let n: number
+    if (tasks.length == 0) {
+        n = 0
+    } else {
+        n = tasks[tasks.length - 1].Id + 1
+    }
 
     let newTask: Task = {
-        Id: n++,
+        Id: n,
         Description: req.body.Description,
         Completed: false
     }
     tasks.push(newTask)
-    writeToPath(path, JSON.stringify(tasks))
+    await writeToPath(req.params.userID + Path, JSON.stringify(tasks))
     //always have to send something
     resp.send({})
 })
 //Update
-app.put("/api/task/:id", (req, resp) => {
+app.put("/api/task/:userID/:id", async function (req, resp) {
+    let Path: string = ".json"
+    let tasks: Task[] = await readFromPath(req.params.userID + Path)
 
     for (let i = 0; i < tasks.length; i++) {
         if (tasks[i].Id == parseInt(req.params.id)) {
             tasks[i].Description = req.body.Description
         }
     }
-    writeToPath(path, JSON.stringify(tasks))
+    writeToPath(req.params.userID + Path, JSON.stringify(tasks))
     resp.send({})
 })
 
 //do/Undo
-app.put("/api/doTask/:id", (req, resp) => {
-    console.log("PUT: ", req.body)
-    console.log("ID: ", parseInt(req.params.id))
+app.put("/api/doTask/:userID/:id", async function (req, resp) {
+    let Path: string = ".json"
+    let tasks: Task[] = await readFromPath(req.params.userID + Path)
 
     for (let i = 0; i < tasks.length; i++) {
         if (parseInt(req.params.id) == tasks[i].Id) {
             tasks[i].Completed = true
         }
     }
-    writeToPath(path, JSON.stringify(tasks))
+    writeToPath(req.params.userID + Path, JSON.stringify(tasks))
     //always have to send something
     resp.send({})
 })
-app.put("/api/undoTask/:id", (req, resp) => {
-    console.log("PUT: ", req.body)
-    console.log("ID: ", parseInt(req.params.id))
+app.put("/api/undoTask/:userID/:id", async function (req, resp) {
+
+    let Path: string = ".json"
+    let tasks: Task[] = await readFromPath(req.params.userID + Path)
+
 
     for (let i = 0; i < tasks.length; i++) {
         if (parseInt(req.params.id) == tasks[i].Id) {
             tasks[i].Completed = false
         }
     }
-    writeToPath(path, JSON.stringify(tasks))
+    await writeToPath(req.params.userID + Path, JSON.stringify(tasks))
     //always have to send something
     resp.send({})
 })
 //delete one
-app.delete("/api/task/:id", (req, resp) => {
+app.delete("/api/task/:userID/:id", async function (req, resp) {
+
+    let Path: string = ".json"
+    let tasks: Task[] = await readFromPath(req.params.userID + Path)
+
     let taskId = parseInt(req.params.id)
-    let newTasks = []
+    console.log(taskId, req.params.userID)
+    let newTasks: Task[] = []
     let n = 0
     for (let i = 0; i < tasks.length; i++) {
         if (taskId == tasks[i].Id) {
@@ -91,25 +104,29 @@ app.delete("/api/task/:id", (req, resp) => {
         }
     }
     tasks = newTasks
-    writeToPath(path, JSON.stringify(tasks))
+
+    console.log(JSON.stringify(tasks))
+    await writeToPath(req.params.userID + Path, JSON.stringify(tasks))
     resp.send({})
 })
 //delete all
-app.delete("/api/deleteAllTask", function (req, resp) {
-    tasks = []
-    writeToPath(path, JSON.stringify(tasks))
+app.delete("/api/deleteAllTask/:userID", async function (req, resp) {
+    let Path: string = ".json"
+    let tasks: Task[] = []
+    await writeToPath(req.params.userID + Path, JSON.stringify(tasks))
 
     resp.send({})
 })
 
-async function readFromPath(path: string) {
+async function readFromPath(path: string): Promise<Task[]> {
     const content = await readFile(path, "utf-8")
 
     //do something with content...
 
     //to parse json use
     //Converts a JavaScript Object Notation (JSON) string into an object.
-    tasks = JSON.parse(content) as Task[]
+    let tasks = JSON.parse(content) as Task[]
+    return tasks
 }
 
 async function writeToPath(path: string, content: string) {
