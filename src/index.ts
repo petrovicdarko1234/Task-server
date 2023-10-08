@@ -69,9 +69,22 @@ app.post("/api/login", async function (req, resp) {
     for (let i = 0; i < users.length; i++) {
         if (req.body.Username == users[i].Username && req.body.Password == users[i].Password) {
             resp.send({ Id: users[i].Id })
+            return
         }
     }
     resp.send({ Id: -1 })
+})
+// GET username
+app.get("/api/username/:userID", async function (req, resp) {
+    console.log(req.body)
+    let users: User[] = await readUsers("users.json")
+
+    for (let i = 0; i < users.length; i++) {
+        if (parseInt(req.params.userID) == users[i].Id) {
+            resp.send({ Username: users[i].Username })
+            return
+        }
+    }
 })
 //GET
 app.get("/api/task/:userID", async function (req, resp) {
