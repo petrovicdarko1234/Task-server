@@ -39,7 +39,6 @@ app.post("/api/create", async function (req, resp) {
         n = users[users.length - 1].Id + 1
     }
 
-
     let newUser = {
         Username: req.body.Username,
         Password: req.body.Password,
@@ -52,7 +51,6 @@ app.post("/api/create", async function (req, resp) {
             return
         }
     }
-
 
     users.push(newUser)
     await writeToPath("users.json", JSON.stringify(users))
@@ -88,7 +86,6 @@ app.get("/api/task/:userID", async function (req, resp) {
 //Create
 
 app.post("/api/task/:userID", async function (req, resp) {
-
 
     let tasks: Task[] = []
 
